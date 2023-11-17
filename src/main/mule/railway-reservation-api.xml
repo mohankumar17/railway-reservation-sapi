@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+   
+    <flow name="railway-reservation-api-main">
+        <http:listener config-ref="railway-reservation-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="railway-reservation-api-config" />
+        <error-handler ref="global-error-handler">
+            
+        </error-handler>
+    </flow>
+    <flow name="railway-reservation-api-console">
+        <http:listener config-ref="railway-reservation-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="railway-reservation-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\reservations\(reservationId):application\json:railway-reservation-api-config">
+		<set-variable value="#[attributes.uriParams.'reservationId']" doc:name="reservationId" doc:id="5621a149-d4af-4cec-b863-f5daa994ecdc" variableName="reservationId"/>
+		<flow-ref doc:name="validate-reservationId-uriparam" doc:id="be09b28a-e98b-41e2-aef8-59cd780f27cc" name="validate-reservationId-uriparam"/>
+		<flow-ref doc:name="update-reservation-implementation" doc:id="96a3f323-59ab-4c4b-973a-c51dae3c4437" name="update-reservation-implementation"/>
+        
+    </flow>
+    <flow name="delete:\reservations\(reservationId):railway-reservation-api-config">
+		<set-variable value="#[attributes.uriParams.'reservationId']" doc:name="reservationId" doc:id="43710aba-91ab-4d3d-a62e-a6f1ae1af8d7" variableName="reservationId" />
+		<flow-ref doc:name="validate-reservationId-uriparam" doc:id="b083e46c-c815-4854-98fc-d1ea99ed18e7" name="validate-reservationId-uriparam" />
+		<flow-ref doc:name="delete-reservation-implementation" doc:id="2e308a68-e800-4788-9910-a0f2b0925c7e" name="delete-reservation-implementation" />
+    </flow>
+    <flow name="get:\reservations:railway-reservation-api-config">
+		<flow-ref doc:name="get-reservations-by-status-implementation" doc:id="9635b5db-04d7-4146-8872-ed926379b906" name="get-reservations-by-status-implementation" />
+    </flow>
+    <flow name="get:\reservations\(reservationId):railway-reservation-api-config">
+		<set-variable value="#[attributes.uriParams.'reservationId']" doc:name="reservationId" doc:id="4aa2ad0f-4d1f-4afb-9c23-e6fbc6c40261" variableName="reservationId" />
+		<flow-ref doc:name="validate-reservationId-uriparam" doc:id="e1c97e7a-fd60-4d62-b7e9-f714e5e9c9a7" name="validate-reservationId-uriparam" />
+		<flow-ref doc:name="get-reservation-by-id-implementation" doc:id="b2ab8d39-9352-4b5d-b6b9-9a5730af740a" name="get-reservation-by-id-implementation" />
+    </flow>
+    <flow name="post:\reservations:application\json:railway-reservation-api-config">
+		<flow-ref doc:name="create-reservation-implementation" doc:id="d2fe9232-1c62-42d4-9ec9-668c739ab0a6" name="create-reservation-implementation" />
+    </flow>
+</mule>

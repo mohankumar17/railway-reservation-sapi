@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	
+	 <http:listener-config name="railway-reservation-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
+    </http:listener-config>
+    <apikit:config name="railway-reservation-api-config" api="resource::b98b97ab-1755-496f-aa80-cf17a9e56db8:railway-reservation-api:1.0.2:raml:zip:railway-reservation-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+	<configuration-properties doc:name="Configuration properties" doc:id="60b24fd9-2bae-404a-8ba9-12c2c19b2f09" file="properties\dev.yaml" />
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="844a7a6a-d707-4d68-9c03-b4ae3b8456a5" >
+		<db:generic-connection url="${db.url}" driverClassName="${db.driverClass}" user="${db.username}" password="${db.password}" />
+	</db:config>
+	
+
+</mule>

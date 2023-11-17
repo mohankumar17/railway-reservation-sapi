@@ -1,0 +1,10 @@
+%dw 2.0
+
+type auto_d9ab799c_1604_4275_8184_2b5a700fb7c4_Output_Payload = {
+  trainId: String, 
+  passengers: Array<{    coachNumber?: String,     passengerId: String,     seatNumber?: Number,     classType: String,     _?: Any  }>, 
+  paymentMethod: String, 
+  status?: String, 
+  _?: Any
+}
+

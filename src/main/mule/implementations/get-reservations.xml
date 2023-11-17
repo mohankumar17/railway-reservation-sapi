@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="get-reservation-by-id-implementation" doc:id="4ccd7375-9f11-4b41-ae8b-5402758671e2" >
+		<flow-ref doc:name="check-reservationId" doc:id="6e0d37a5-f1e1-4d63-99d5-5b3b9f8c17c5" name="check-reservationId"/>
+		<db:select doc:name="Join RAILWAY_RESERVATIONS and TICKET_PASSENGER_DETAILS" doc:id="5b16a9b7-0389-4668-88a7-a7497819edc2" config-ref="Database_Config" target="railwayReservation">
+			<db:sql ><![CDATA[SELECT rr.RESERVATION_ID, rr.RESERVATION_DATE, rr.PAYMENT_METHOD, rr.TOTAL_FARE, rr.BOOKING_STATUS, rr.TRAIN_ID, tpd.PASSENGER_ID, tpd.COACH_NO, tpd.SEAT_NO, tpd.CLASS_TYPE
+FROM RAILWAY_RESERVATIONS rr
+INNER JOIN TICKET_PASSENGER_DETAILS tpd
+ON rr.RESERVATION_ID=tpd.RESERVATION_ID 
+WHERE rr.RESERVATION_ID=:reservation_id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	reservation_id: vars.reservationId
+}]]]></db:input-parameters>
+		</db:select>
+		<flow-ref doc:name="get-reservations-response" doc:id="24e80dbc-c194-496e-be55-344c76a1a990" name="get-reservations-response"/>
+		<set-payload value="#[payload[0]]" doc:name="First Record" doc:id="adb9f0a7-8170-4fc6-a1bb-a396a16c9c0b" />
+	</flow>
+	<flow name="get-reservations-by-status-implementation" doc:id="f5e7e618-2248-4bf5-9a5d-d8c7ddb68599" >
+		<set-variable value="#[attributes.queryParams.'status']" doc:name="bookingStatus" doc:id="1bfff061-1942-4c24-964f-ca3d6d4b3f6f" variableName="bookingStatus"/>
+		<db:select doc:name="Join RAILWAY_RESERVATIONS and TICKET_PASSENGER_DETAILS" doc:id="5911c924-f4e8-43d4-a6aa-3d403a1f23ca" config-ref="Database_Config" target="railwayReservation">
+			<db:sql><![CDATA[SELECT rr.RESERVATION_ID, rr.RESERVATION_DATE, rr.PAYMENT_METHOD, rr.TOTAL_FARE, rr.BOOKING_STATUS, rr.TRAIN_ID, tpd.PASSENGER_ID, tpd.COACH_NO, tpd.SEAT_NO, tpd.CLASS_TYPE
+FROM RAILWAY_RESERVATIONS rr
+INNER JOIN TICKET_PASSENGER_DETAILS tpd
+ON rr.RESERVATION_ID=tpd.RESERVATION_ID 
+WHERE rr.booking_status=:booking_status]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	booking_status: vars.bookingStatus
+}]]]></db:input-parameters>
+		</db:select>
+		<flow-ref doc:name="get-reservations-response" doc:id="6f13f79d-3074-4a98-a36a-99831f16e082" name="get-reservations-response"/>
+	</flow>
+	<sub-flow name="get-reservations-response" doc:id="9ba195da-0b24-4886-907f-613fc1d2e4a8" >
+		<ee:transform doc:name="Convert to JSON" doc:id="a741415c-6d2a-4e54-ac8c-1751a8adef11">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="railwayReservation"><![CDATA[%dw 2.0
+output application/json
+---
+vars.railwayReservation]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Success Response" doc:id="fc5bf19b-d599-4a7a-92e3-09a3586906b1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.railwayReservation groupBy $.RESERVATION_ID mapObject {
+    ($$): (($ map {
+        reservationId: $.RESERVATION_ID,
+        reservationDate: $.RESERVATION_DATE,
+        paymentMethod: $.PAYMENT_METHOD,
+        totalFare: $.TOTAL_FARE,
+        status: $.BOOKING_STATUS,
+        trainId: $.TRAIN_ID   
+    })[0]) ++ ({
+        "passengers": $ map {
+            "passengerId": $.PASSENGER_ID,
+			"coachNumber": $.COACH_NO,
+			"seatNumber": $.SEAT_NO,
+			"classType": $.CLASS_TYPE
+        }
+    })
+} pluck $]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="httpStatus"><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+</mule>

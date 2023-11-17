@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_4ae29a32_c51c_41de_a1cc_93f16c13338a_Output_Variables_reservationCheck = Array<{| RESERVATION_ID: Number |}>
+

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="delete-reservation-implementation" doc:id="b32c378f-c0e9-450e-9eb7-e4f74f57b20a" >
+		<flow-ref doc:name="check-reservationId" doc:id="fc1fee66-0e9a-4492-ae7f-a5b70a6f990d" name="check-reservationId"/>
+		<try doc:name="Try" doc:id="de1ba2c6-bf52-447c-8544-f3f4d74e3726" transactionalAction="BEGIN_OR_JOIN">
+			<db:delete doc:name="RAILWAY_RESERVATIONS" doc:id="affcaa0d-1729-4fcc-bffb-267e7db41833" config-ref="Database_Config">
+			<db:sql><![CDATA[DELETE FROM RAILWAY_RESERVATIONS
+WHERE reservation_id=:reservation_id]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	reservation_id: vars.reservationId
+}]]]></db:input-parameters>
+		</db:delete>
+		</try>
+		<ee:transform doc:name="Success Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Reservation details deleted successfully",
+  dateTime: now() as String{format: "yyyy-MM-dd'T'hh:mm:ss'Z'"}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+	</flow>
+</mule>

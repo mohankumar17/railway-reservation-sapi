@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	
+	<flow name="update-reservation-implementation" doc:id="f8a43ce3-9b06-4e89-9792-1db75df237d7">
+	<flow-ref doc:name="check-reservationId" doc:id="9075a3ac-0640-4f14-9107-e7abcff73ebc" name="check-reservationId"/>
+		<flow-ref doc:name="get-fare-price" doc:id="fe74e347-6f27-40c9-8653-ceb682c25645" name="get-fare-price"/>
+		<ee:transform doc:name="Transform Message" doc:id="0e3e63b7-509d-4117-8c9f-ccdaa73958ea">
+            <ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{	
+	"updatedOn": now() as String{format: "yyyy-MM-dd hh:mm:ss"},
+	"paymentMethod": payload.paymentMethod,
+	"totalFare": vars.farePrice,
+	"status": payload.status default "NotConfirmed",
+	"trainId": payload.trainId,
+	"passengers": payload.passengers
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+            </ee:variables>
+        </ee:transform>
+		<try doc:name="Try" doc:id="0505fe03-708b-4cb3-ba8d-99fa0424bb53" transactionalAction="BEGIN_OR_JOIN">
+			<db:update doc:name="RAILWAY_RESERVATIONS" doc:id="44c42308-3ff5-4da0-8697-f4e3174ae700" config-ref="Database_Config" target="railway-reservations-update-res">
+				<db:sql ><![CDATA[UPDATE RAILWAY_RESERVATIONS
+SET payment_method=:payment_method,
+	total_fare=:total_fare,
+	booking_status=:booking_status,
+	train_id=:train_id,
+	updated_on=:updated_on
+WHERE reservation_id=:reservation_id]]></db:sql>
+				<db:input-parameters ><![CDATA[#[{	
+	reservation_id: vars.reservationId,
+	payment_method: payload.paymentMethod,
+	total_fare: payload.totalFare,
+	booking_status: payload.status,
+	train_id: payload.trainId,
+	updated_on: payload.updatedOn
+}]]]></db:input-parameters>
+			</db:update>
+			<db:bulk-update doc:name="TICKET_PASSENGER_DETAILS" doc:id="5373538e-a312-4e86-a39a-07004ae62ce1" config-ref="Database_Config" target="ticket-passenger-details-update-res">
+				<db:bulk-input-parameters ><![CDATA[#[payload.passengers map {
+	reservation_id: vars.reservationId,
+	passenger_id: $.passengerId,
+	coach_no: $.coachNumber,
+	seat_no: $.seatNumber,
+	class_type: $.classType,
+	updated_on: payload.updatedOn
+}]]]></db:bulk-input-parameters>
+				<db:sql ><![CDATA[UPDATE TICKET_PASSENGER_DETAILS
+SET coach_no=:coach_no,
+	seat_no=:seat_no,
+	class_type=:class_type,
+	updated_on=:updated_on
+WHERE reservation_id=:reservation_id AND passenger_id=:passenger_id]]></db:sql>
+			</db:bulk-update>
+		</try>
+		<ee:transform doc:name="Success Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Reservation details updated successfully",
+  dateTime: now() as String{format: "yyyy-MM-dd'T'hh:mm:ss'Z'"}
+}]]></ee:set-payload>
+            </ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[200]]></ee:set-variable>
+			</ee:variables>
+        
+</ee:transform>
+	
+	</flow>
+</mule>

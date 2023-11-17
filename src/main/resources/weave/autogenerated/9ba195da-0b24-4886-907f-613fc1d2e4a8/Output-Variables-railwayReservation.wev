@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_9ba195da_0b24_4886_907f_613fc1d2e4a8_Output_Variables_railwayReservation = Array<{|  RESERVATION_ID: Number,   RESERVATION_DATE: Date,   PAYMENT_METHOD?: String,   TOTAL_FARE?: Number,   BOOKING_STATUS?: String,   TRAIN_ID: String|}>
+

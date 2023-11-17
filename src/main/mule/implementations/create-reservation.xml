@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="create-reservation-implementation" doc:id="46d6aca0-6460-41a7-8ef3-bf89748a8482" >
+		<flow-ref doc:name="get-fare-price" doc:id="214e6304-eb89-46d1-b29b-04aa0455ccf8" name="get-fare-price"/>
+		<ee:transform doc:name="Transform Message" doc:id="62b0f7a2-8669-4d8f-a9f4-71bd33b2e4da" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{	
+	"reservationDate": now() as String{format: "yyyy-MM-dd hh:mm:ss"},
+	"paymentMethod": payload.paymentMethod,
+	"totalFare": vars.farePrice,
+	"status": payload.status default "NotConfirmed",
+	"trainId": payload.trainId,
+	"passengers": payload.passengers
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<try doc:name="Try" doc:id="b751d51a-0480-4a29-9122-8c07de5d4674" transactionalAction="BEGIN_OR_JOIN">
+			<db:insert doc:name="RAILWAY_RESERVATIONS" doc:id="2daeca8e-11b8-47b7-a575-f6ae315b18c3" config-ref="Database_Config" autoGenerateKeys="true" target="railway_reservations_insert_res">
+			<db:sql><![CDATA[INSERT INTO RAILWAY_RESERVATIONS(reservation_date,payment_method,total_fare,booking_status,train_id)
+VALUES(:reservation_date,:payment_method,:total_fare,:booking_status,:train_id)]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	reservation_date: payload.reservationDate,
+	payment_method: payload.paymentMethod,
+	total_fare: payload.totalFare,
+	booking_status: payload.status,
+	train_id: payload.trainId
+}]]]></db:input-parameters>
+			<db:auto-generated-keys-column-names>
+				<db:auto-generated-keys-column-name value="RESERVATION_ID" />
+			</db:auto-generated-keys-column-names>
+		</db:insert>
+			<set-variable value='#[vars.railway_reservations_insert_res.generatedKeys."RESERVATION_ID"]' doc:name="reservation_id" doc:id="268b5c22-4dcc-4d12-8821-df0889e3dc18" variableName="reservation_id" />
+			<db:bulk-insert doc:name="TICKET_PASSENGER_DETAILS" doc:id="72e688a2-895f-4e78-a002-ef60151d84fb" config-ref="Database_Config" target="ticket-passenger-details-insert-res">
+			<db:bulk-input-parameters><![CDATA[#[payload.passengers map {
+	reservation_id: vars.reservation_id,
+	passenger_id: $.passengerId,
+	coach_no: $.coachNumber,
+	seat_no: $.seatNumber,
+	class_type: $.classType
+}]]]></db:bulk-input-parameters>
+			<db:sql><![CDATA[INSERT INTO TICKET_PASSENGER_DETAILS(reservation_id,passenger_id,coach_no,seat_no,class_type)
+VALUES(:reservation_id,:passenger_id,:coach_no,:seat_no,:class_type)]]></db:sql>
+		</db:bulk-insert>
+		</try>
+		<ee:transform doc:name="Success Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Reservation is successful",
+  reservationId: vars.reservation_id,
+  dateTime: now() as String{format: "yyyy-MM-dd'T'hh:mm:ss'Z'"}
+}]]></ee:set-payload>
+            </ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="httpStatus" ><![CDATA[201]]></ee:set-variable>
+			</ee:variables>
+        </ee:transform>
+	</flow>
+	
+	
+        
+</mule>

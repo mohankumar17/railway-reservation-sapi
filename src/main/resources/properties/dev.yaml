@@ -1,0 +1,10 @@
+http:
+  port: "8081"
+  
+db:
+  url: "jdbc:db2://8e359033-a1c9-4643-82ef-8ac06f5107eb.bs2io90l08kqb1od8lcg.databases.appdomain.cloud:30120/bludb:sslConnection=true;"
+  driverClass: "com.ibm.db2.jcc.DB2Driver"
+  username: "jgb87084"
+  password: "NUN5WvoTXfGF7utK"
+  
+  
