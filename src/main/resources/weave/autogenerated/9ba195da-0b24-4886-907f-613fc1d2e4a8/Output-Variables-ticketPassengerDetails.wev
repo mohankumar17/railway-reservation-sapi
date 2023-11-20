@@ -1,4 +1,0 @@
-%dw 2.0
-
-type auto_9ba195da_0b24_4886_907f_613fc1d2e4a8_Output_Variables_ticketPassengerDetails = Array<{|  RESERVATION_ID: Number,   PASSENGER_ID: String,   COACH_NO?: String,   SEAT_NO?: Number,   CLASS_TYPE: String|}>
-
