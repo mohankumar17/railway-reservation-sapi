@@ -11,7 +11,21 @@
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:error-response>
         </http:listener>
-        <apikit:router config-ref="railway-reservation-api-config" />
+        <ee:transform doc:name="correlationId and transactionId" doc:id="67d230f7-1d54-4d8d-9329-527b46a6d510" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers."correlation-id" default uuid()]]></ee:set-variable>
+				<ee:set-variable variableName="transactionId" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers."transaction-id" default uuid()]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<apikit:router config-ref="railway-reservation-api-config" />
         <error-handler ref="global-error-handler">
             
         </error-handler>

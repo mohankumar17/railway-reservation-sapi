@@ -15,7 +15,7 @@ output application/json
   "message": vars.errorDetails.message,
   "description": vars.errorDetails.description,
   "dateTime": now() as String{format: "yyyy-MM-dd'T'hh:mm:ss'Z'"},
-  "transactionId": ""
+  "transactionId": vars.transactionId
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>

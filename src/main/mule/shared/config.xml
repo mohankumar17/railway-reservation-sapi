@@ -26,6 +26,5 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 	</db:config>
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="5e5a0a7e-1da2-4460-b673-82d197bd5821" file="properties/${mule.env}.yaml" key="${enc.key}" />
 	<api-gateway:autodiscovery apiId="19121816" ignoreBasePath="false" doc:name="API Autodiscovery" doc:id="0d3b4fb7-7ff2-41ce-9d93-dfa0c1eb5762" flowRef="railway-reservation-api-main" />
-	
 
 </mule>
