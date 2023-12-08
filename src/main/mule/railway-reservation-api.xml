@@ -18,7 +18,7 @@
 				<ee:set-variable variableName="correlationId" ><![CDATA[%dw 2.0
 output application/java
 ---
-attributes.headers."correlation-id" default uuid()]]></ee:set-variable>
+attributes.headers."correlation-id" default correlationId]]></ee:set-variable>
 				<ee:set-variable variableName="transactionId" ><![CDATA[%dw 2.0
 output application/java
 ---

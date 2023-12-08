@@ -55,13 +55,6 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-			<groupId>b98b97ab-1755-496f-aa80-cf17a9e56db8</groupId>
-			<artifactId>railway-reservation-api</artifactId>
-			<version>1.0.2</version>
-			<classifier>raml</classifier>
-			<type>zip</type>
-		</dependency>
-		<dependency>
 			<groupId>org.mule.modules</groupId>
 			<artifactId>mule-apikit-module</artifactId>
 			<version>1.9.1</version>
@@ -89,6 +82,13 @@
 			<artifactId>mule-secure-configuration-property-module</artifactId>
 			<version>1.2.5</version>
 			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>b98b97ab-1755-496f-aa80-cf17a9e56db8</groupId>
+			<artifactId>railway-reservation-api</artifactId>
+			<version>1.0.3</version>
+			<classifier>raml</classifier>
+			<type>zip</type>
 		</dependency>
 	</dependencies>
 
