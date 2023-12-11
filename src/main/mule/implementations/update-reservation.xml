@@ -10,7 +10,6 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 	
 	<flow name="update-reservation-implementation" doc:id="f8a43ce3-9b06-4e89-9792-1db75df237d7">
 	<flow-ref doc:name="check-reservationId" doc:id="9075a3ac-0640-4f14-9107-e7abcff73ebc" name="check-reservationId"/>
-		<flow-ref doc:name="get-fare-price" doc:id="fe74e347-6f27-40c9-8653-ceb682c25645" name="get-fare-price"/>
 		<ee:transform doc:name="Transform Message" doc:id="0e3e63b7-509d-4117-8c9f-ccdaa73958ea">
             <ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -19,7 +18,7 @@ output application/json
 {	
 	"updatedOn": now() as String{format: "yyyy-MM-dd hh:mm:ss"},
 	"paymentMethod": payload.paymentMethod,
-	"totalFare": vars.farePrice,
+	"totalFare": payload.totalFare,
 	"status": payload.status default "NotConfirmed",
 	"trainId": payload.trainId,
 	"passengers": payload.passengers

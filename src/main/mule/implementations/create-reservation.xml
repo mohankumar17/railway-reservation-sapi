@@ -7,7 +7,6 @@
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<flow name="create-reservation-implementation" doc:id="46d6aca0-6460-41a7-8ef3-bf89748a8482" >
-		<flow-ref doc:name="get-fare-price" doc:id="214e6304-eb89-46d1-b29b-04aa0455ccf8" name="get-fare-price"/>
 		<ee:transform doc:name="Transform Message" doc:id="62b0f7a2-8669-4d8f-a9f4-71bd33b2e4da" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -16,7 +15,7 @@ output application/json
 {	
 	"reservationDate": now() as String{format: "yyyy-MM-dd hh:mm:ss"},
 	"paymentMethod": payload.paymentMethod,
-	"totalFare": vars.farePrice,
+	"totalFare": payload.totalFare,
 	"status": payload.status default "NotConfirmed",
 	"trainId": payload.trainId,
 	"passengers": payload.passengers

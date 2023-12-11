@@ -7,24 +7,6 @@
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
-	<flow name="get-fare-price" doc:id="d9ab799c-1604-4275-8184-2b5a700fb7c4" >
-		<ee:transform doc:name="Calculate Fare Price" doc:id="b8153e35-3e67-468e-9353-a87317343920" >
-			<ee:message >
-			</ee:message>
-			<ee:variables >
-				<ee:set-variable variableName="farePrice" ><![CDATA[%dw 2.0
-output application/json
----
-(payload.passengers reduce ((item, accumulator=0) -> (item.classType match {
-	    case "General" -> 280
-	    case "Sleeper" -> 350
-	    case "AC 3 Tier" -> 600
-	    case "AC 2 Tier" -> 750
-	    case "AC 1 Tier" -> 900
-}) + accumulator)) as Number]]></ee:set-variable>
-			</ee:variables>
-		</ee:transform>
-	</flow>
 	<sub-flow name="validate-reservationId-uriparam" doc:id="6480cb42-e034-4fc1-ae7f-d0663e4479b5">
 		<validation:is-number doc:name="reservationId" doc:id="2520ab34-f2cd-4eb3-ab12-2f076694bc53" value="#[vars.reservationId]" numberType="LONG" message='#["Reservation ID must be Number"]' />
 	</sub-flow>
