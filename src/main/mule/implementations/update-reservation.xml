@@ -17,6 +17,9 @@ output application/json
 ---
 {	
 	"updatedOn": now() as String{format: "yyyy-MM-dd hh:mm:ss"},
+	"travelDate": payload.travelDate,
+	"sourceStation": payload.sourceStation,
+	"destinationStation": payload.destinationStation,
 	"paymentMethod": payload.paymentMethod,
 	"totalFare": payload.totalFare,
 	"status": payload.status default "NotConfirmed",
@@ -34,10 +37,16 @@ SET payment_method=:payment_method,
 	total_fare=:total_fare,
 	booking_status=:booking_status,
 	train_id=:train_id,
+	travel_date=:travel_date,
+	source_station=:source_station,
+	destination_station=:destination_station,
 	updated_on=:updated_on
 WHERE reservation_id=:reservation_id]]></db:sql>
 				<db:input-parameters ><![CDATA[#[{	
 	reservation_id: vars.reservationId,
+	travel_date: payload.travelDate,
+	source_station: payload.sourceStation,
+	destination_station: payload.destinationStation,
 	payment_method: payload.paymentMethod,
 	total_fare: payload.totalFare,
 	booking_status: payload.status,
@@ -49,13 +58,19 @@ WHERE reservation_id=:reservation_id]]></db:sql>
 				<db:bulk-input-parameters ><![CDATA[#[payload.passengers map {
 	reservation_id: vars.reservationId,
 	passenger_id: $.passengerId,
+	name: $.name,
+	age: $.age,
+	gender: $.gender,
 	coach_no: $.coachNumber,
 	seat_no: $.seatNumber,
 	class_type: $.classType,
 	updated_on: payload.updatedOn
 }]]]></db:bulk-input-parameters>
 				<db:sql ><![CDATA[UPDATE TICKET_PASSENGER_DETAILS
-SET coach_no=:coach_no,
+SET name=:name,
+	age=:age,
+	gender=:gender,
+	coach_no=:coach_no,
 	seat_no=:seat_no,
 	class_type=:class_type,
 	updated_on=:updated_on

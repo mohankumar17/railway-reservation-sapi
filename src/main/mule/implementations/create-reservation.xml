@@ -14,6 +14,9 @@ output application/json
 ---
 {	
 	"reservationDate": now() as String{format: "yyyy-MM-dd hh:mm:ss"},
+	"travelDate": payload.travelDate,
+	"sourceStation": payload.sourceStation,
+	"destinationStation": payload.destinationStation,
 	"paymentMethod": payload.paymentMethod,
 	"totalFare": payload.totalFare,
 	"status": payload.status default "NotConfirmed",
@@ -24,10 +27,13 @@ output application/json
 		</ee:transform>
 		<try doc:name="Try" doc:id="b751d51a-0480-4a29-9122-8c07de5d4674" transactionalAction="BEGIN_OR_JOIN">
 			<db:insert doc:name="RAILWAY_RESERVATIONS" doc:id="2daeca8e-11b8-47b7-a575-f6ae315b18c3" config-ref="Database_Config" autoGenerateKeys="true" target="railway_reservations_insert_res">
-			<db:sql><![CDATA[INSERT INTO RAILWAY_RESERVATIONS(reservation_date,payment_method,total_fare,booking_status,train_id)
-VALUES(:reservation_date,:payment_method,:total_fare,:booking_status,:train_id)]]></db:sql>
+			<db:sql><![CDATA[INSERT INTO RAILWAY_RESERVATIONS(reservation_date,travel_date,source_station,destination_station,payment_method,total_fare,booking_status,train_id)
+VALUES(:reservation_date,:travel_date,:source_station,:destination_station,:payment_method,:total_fare,:booking_status,:train_id)]]></db:sql>
 			<db:input-parameters><![CDATA[#[{
 	reservation_date: payload.reservationDate,
+	travel_date: payload.travelDate,
+	source_station: payload.sourceStation,
+	destination_station: payload.destinationStation,
 	payment_method: payload.paymentMethod,
 	total_fare: payload.totalFare,
 	booking_status: payload.status,
@@ -42,12 +48,15 @@ VALUES(:reservation_date,:payment_method,:total_fare,:booking_status,:train_id)]
 			<db:bulk-input-parameters><![CDATA[#[payload.passengers map {
 	reservation_id: vars.reservation_id,
 	passenger_id: $.passengerId,
+	name: $.name,
+	age: $.age,
+	gender: $.gender,
 	coach_no: $.coachNumber,
 	seat_no: $.seatNumber,
 	class_type: $.classType
 }]]]></db:bulk-input-parameters>
-			<db:sql><![CDATA[INSERT INTO TICKET_PASSENGER_DETAILS(reservation_id,passenger_id,coach_no,seat_no,class_type)
-VALUES(:reservation_id,:passenger_id,:coach_no,:seat_no,:class_type)]]></db:sql>
+			<db:sql><![CDATA[INSERT INTO TICKET_PASSENGER_DETAILS(reservation_id,passenger_id,name,age,gender,coach_no,seat_no,class_type)
+VALUES(:reservation_id,:passenger_id,:name,:age,:gender,:coach_no,:seat_no,:class_type)]]></db:sql>
 		</db:bulk-insert>
 		</try>
 		<ee:transform doc:name="Success Response">
